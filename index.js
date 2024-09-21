@@ -24,6 +24,7 @@ async function run() {
     const database = client.db("cse-society"); 
     const contactsCollection = database.collection("contacts");
     const schedulesCollection = database.collection("schedule");
+    const achievementCollection = database.collection("achievement");
 
     // Send contact data
     app.post('/contact', async (req, res) => {
@@ -50,11 +51,29 @@ async function run() {
       res.send(result);
     });
 
+    // Get achievement data
+    app.get('/achievement', async (req, res) => {
+      try {
+        const cursor = achievementCollection.find({});
+        const achievement = await cursor.toArray();
+        res.json(achievement);
+      } catch (err) {
+        res.status(500).send('Error fetching achievements');
+      }
+    });
+
+    // Post achievement data (admin route)
+    app.post("/achievement", async (req, res) => {
+      const achievement = req.body;
+      const result = await achievementCollection.insertOne(achievement);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
   } finally {
-    // Ensures that the client will close when you finish/error
+    // Ensure the client will close when finished or on error
     // await client.close();
   }
 }
@@ -62,9 +81,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-    res.send('Server is Running');
+  res.send('Server is Running');
 });
 
 app.listen(port, () => {
-    console.log(`Server is Running on port ${port}`);
+  console.log(`Server is Running on port ${port}`);
 });
