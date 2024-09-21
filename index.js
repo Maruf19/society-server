@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -7,14 +9,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-//marufrony48
-//173-115-012
-
-
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://marufrony48:173-115-012@cluster0.o1dvu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -25,39 +20,46 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-   const database = client.db("cse-society");
-   const contactsCollection = database.collection("contacts")
-  
-  app.post('/contact', async(req, res) =>{
-    const contact = req.body;
-    console.log ('contacts', contact);
-    const result = await contactsCollection.insertOne(contact);
+    const database = client.db("cse-society"); 
+    const contactsCollection = database.collection("contacts");
+    const schedulesCollection = database.collection("schedule");
 
-    res.send(result);
-  })
+    // Send contact data
+    app.post('/contact', async (req, res) => {
+      const contact = req.body;
+      const result = await contactsCollection.insertOne(contact);
+      res.send(result);
+    });
 
+    // Get schedule data
+    app.get('/schedule', async (req, res) => {
+      try {
+        const cursor = schedulesCollection.find({});
+        const schedules = await cursor.toArray();
+        res.json(schedules);
+      } catch (err) {
+        res.status(500).send('Error fetching schedules');
+      }
+    });
 
+    // Post schedule data (admin route)
+    app.post("/schedule", async (req, res) => {
+      const schedule = req.body;
+      const result = await schedulesCollection.insertOne(schedule);
+      res.send(result);
+    });
 
-
-    // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
-
-    
-
-
 
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }
+
 run().catch(console.dir);
-
-
-
 
 app.get('/', (req, res) => {
     res.send('Server is Running');
