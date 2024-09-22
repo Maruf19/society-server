@@ -34,11 +34,18 @@ async function run() {
     const programmesCollection = database.collection ("Programme");
     const homeCollection = database.collection ("home");
     const missionVisionCollection = database.collection('mission-vision');
-
+    const reviewsCollection = database.collection('review');
     // Send contact data
     app.post('/contact', async (req, res) => {
       const contact = req.body;
       const result = await contactsCollection.insertOne(contact);
+      res.send(result);
+    });
+
+    // Send review data
+    app.post('/review', async (req, res) => {
+      const review = req.body;
+      const result = await reviewsCollection.insertOne(review);
       res.send(result);
     });
 
