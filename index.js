@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion } = require('mongodb');
-
 const app = express();
 const port = process.env.PORT || 5000;
+
 
 // Middleware
 app.use(cors());
@@ -29,8 +29,11 @@ async function run() {
     const facebookCollection = database.collection("facebook");
     const newsCollection = database.collection("news");
     const aboutCollection = database.collection("about");
-    const leadersCollection = database.collection("leader")
-    const teamCollection = database.collection("team")
+    const leadersCollection = database.collection("leader");
+    const teamsCollection = database.collection("team");
+    const programmesCollection = database.collection ("Programme");
+    const homeCollection = database.collection ("home");
+    const missionVisionCollection = database.collection('mission-vision');
 
     // Send contact data
     app.post('/contact', async (req, res) => {
@@ -148,6 +151,8 @@ async function run() {
       res.send(result);
     });
 
+
+
       //Leader Get Data
       app.get('/leader', async (req, res) => {
         try {
@@ -155,19 +160,103 @@ async function run() {
           const Leader = await cursor.toArray();
           res.json(Leader);
         } catch (err) {
-          res.status(500).send('Error fetching About');
+          res.status(500).send('Error fetching Leader');
         }
       });
   
       // Post Leader data (admin route)
-      app.post("/about", async (req, res) => {
+      app.post("/leader", async (req, res) => {
         const Leader = req.body;
-        const result = await leadersCollection.insertOne(about);
+        const result = await leadersCollection.insertOne(Leader);
         res.send(result);
       });
 
       
 
+
+      //team Get Data
+      app.get('/team', async (req, res) => {
+        try {
+          const cursor = teamsCollection.find({});
+          const team = await cursor.toArray();
+          res.json(team);
+        } catch (err) {
+          res.status(500).send('Error fetching Team');
+        }
+      });
+  
+      // Post Team data (admin route)
+      app.post("/team", async (req, res) => {
+        const team = req.body;
+        const result = await teamsCollection.insertOne(team);
+        res.send(result);
+      });
+
+
+//Programme Get Data
+app.get('/programme', async (req, res) => {
+  try {
+    const cursor = programmesCollection.find({});
+    const Programme = await cursor.toArray();
+    res.json(Programme);
+  } catch (err) {
+    res.status(500).send('Error fetching Programme');
+  }
+});
+
+// Post Programme data (admin route)
+app.post("/programme", async (req, res) => {
+  const Programme = req.body;
+  const result = await programmesCollection.insertOne(Programme);
+  res.send(result);
+});
+
+//Home Get Data
+app.get('/home', async (req, res) => {
+  try {
+    const cursor = homeCollection.find({});
+    const Home = await cursor.toArray();
+    res.json(Home);
+  } catch (err) {
+    res.status(500).send('Error fetching Home');
+  }
+});
+
+// Post Home data (admin route)
+app.post("/home", async (req, res) => {
+  const Home = req.body;
+  const result = await homeCollection.insertOne(Home);
+  res.send(result);
+});
+
+// Assuming you have your express app and MongoDB connection set up
+
+// MissionVision Get Data
+app.get('/mission-vision', async (req, res) => {
+  try {
+    const cursor = missionVisionCollection.find({}); // Ensure you have the correct collection name
+    const missionVision = await cursor.toArray(); // Changed variable name for clarity
+    res.json(missionVision);
+  } catch (err) {
+    console.error(err); // Log the error for debugging
+    res.status(500).send('Error fetching mission and vision data');
+  }
+});
+
+// Post Home data (admin route)
+app.post("/home", async (req, res) => {
+  try {
+    const homeData = req.body; // Use a more descriptive variable name
+    const result = await homeCollection.insertOne(homeData);
+    res.send(result);
+  } catch (err) {
+    console.error(err); // Log the error for debugging
+    res.status(500).send('Error posting home data');
+  }
+});
+
+
+      
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
