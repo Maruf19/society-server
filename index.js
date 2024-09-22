@@ -49,6 +49,16 @@ async function run() {
       res.send(result);
     });
 
+    // Get review data
+    app.get('/review', async (req, res) => {
+      try {
+        const reviews = await reviews.find();
+        res.status(200).json(reviews);
+      } catch (error) {
+        res.status(500).send(error);
+      }
+    });
+
     // Get schedule data
     app.get('/schedule', async (req, res) => {
       try {
