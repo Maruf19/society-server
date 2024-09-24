@@ -89,16 +89,16 @@ async function run() {
 
 
 
- // Schedule routes
- app.get('/schedule', async (req, res) => {
+    // Schedule routes
+     app.get('/schedule', async (req, res) => {
   try {
     const schedules = await schedulesCollection.find().toArray();
     res.json(schedules);
   } catch (err) {
     res.status(500).send('Error fetching schedules: ' + err.message);
   }
-});
- // Post a schedule
+    });
+    // Post a schedule
     app.post("/schedule", upload.single('image'), async (req, res) => {
       try {
         const { title, description } = req.body;
@@ -117,8 +117,7 @@ async function run() {
       }
     });
 
-
-      // Update a schedule
+    // Update a schedule
       app.put("/schedule/:id", upload.single('image'), async (req, res) => {
         try {
           const { id } = req.params;
@@ -140,10 +139,8 @@ async function run() {
         }
       });
   
-      // Delete a schedule
-     
-
-app.delete('/schedule/:id', async (req, res) => {
+    // Delete a schedule
+    app.delete('/schedule/:id', async (req, res) => {
   try {
     const result = await schedulesCollection.deleteOne({ _id: new ObjectId(req.params.id) });
 
@@ -155,14 +152,14 @@ app.delete('/schedule/:id', async (req, res) => {
     console.error('Delete error:', error);
     res.status(500).send('Server error');
   }
-});
+      });
 
 
 
 
 
 
- // Schedule routes
+ // achievement routes
 app.get('/achievement', async (req, res) => {
   try {
     const achievements = await achievementCollection.find().toArray();
@@ -172,7 +169,7 @@ app.get('/achievement', async (req, res) => {
   }
 });
 
-// Post a schedule
+// Post a achievement
 app.post("/achievement", upload.single('image'), async (req, res) => {
   try {
     const { type, position, location, locationDate } = req.body;
@@ -193,7 +190,7 @@ app.post("/achievement", upload.single('image'), async (req, res) => {
 });
 
 
-// Update a schedule
+// Update a achievement
 app.put("/achievement/:id", upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
@@ -220,7 +217,7 @@ app.put("/achievement/:id", upload.single('image'), async (req, res) => {
   }
 });
 
-// Delete a schedule
+// Delete a achievement
 app.delete('/achievement/:id', async (req, res) => {
   try {
     const result = await achievementCollection.deleteOne({ _id: new ObjectId(req.params.id) });
@@ -236,78 +233,82 @@ app.delete('/achievement/:id', async (req, res) => {
 });
 
 
+// Programme routes
+app.get('/programme', async (req, res) => {
+  try {
+    const programme = await programmesCollection.find().toArray();
+    res.json(programme);
+  } catch (err) {
+    res.status(500).send('Error fetching programme: ' + err.message);
+  }
+    });
 
-// Achievement routes
 
-// // Fetch all achievements
-// app.get('/achievement', async (req, res) => {
-//   try {
-//     const achievements = await achievementCollection.find().toArray();
-//     res.json(achievements);
-//   } catch (err) {
-//     res.status(500).send('Error fetching achievements: ' + err.message);
-//   }
-// });
+   // Get all Programmes
+app.get('/programme', async (req, res) => {
+  try {
+    const programme = await programmesCollection.find().toArray();
+    res.json(programme);
+  } catch (err) {
+    res.status(500).send('Error fetching programme: ' + err.message);
+  }
+});
 
-// // Post a new Achievement
-// // Route for creating a new achievement
-// app.post('/achievement', upload.single('image'), async (req, res) => {
-//   const { updateType, position, location, date } = req.body;
-//   const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+// Post a Programme
+app.post("/programme", upload.single('image'), async (req, res) => {
+  try {
+    const { title, description } = req.body;
 
-//   const newAchievement = new newAchievement({
-//     updateType,
-//     position,
-//     location,
-//     date,
-//     imageUrl,
-//   });
+    if (!req.file) {
+      return res.status(400).send('Image upload failed: No file received.');
+    }
 
-//   await newAchievement.save();
-//   res.status(201).json(newAchievement);
-// });
+    const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+    const programme = { title, description, imageUrl };
+    const result = await programmesCollection.insertOne(programme);
+    res.send(result);
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).send('Image upload failed: ' + error.message);
+  }
+});
 
-// // Update an Achievement
-// app.put("/achievement/:id", upload.single('image'), async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { type, updateType, position, location, date } = req.body;
-//     let updatedAchievement = { type, updateType, position, location, date }; // Set the new fields
+// Update a Programme
+app.put("/programme/:id", upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description } = req.body;
+    let updatedSchedule = { title, description };
 
-//     if (req.file) {
-//       const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
-//       updatedAchievement.photoUrl = imageUrl; // Update photoUrl if a new image is uploaded
-//     }
+    if (req.file) {
+      const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+      updatedSchedule.imageUrl = imageUrl;
+    }
 
-//     const result = await achievementCollection.updateOne(
-//       { _id: new ObjectId(id) },
-//       { $set: updatedAchievement }
-//     );
+    const result = await programmesCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedSchedule }
+    );
+    res.send(result);
+  } catch (error) {
+    res.status(500).send('Error updating programme: ' + error.message);
+  }
+});
 
-//     if (result.matchedCount === 0) {
-//       return res.status(404).send('Achievement not found');
-//     }
+// Delete a Programme
+app.delete('/programme/:id', async (req, res) => {
+  try {
+    const result = await programmesCollection.deleteOne({ _id: new ObjectId(req.params.id) });
 
-//     res.send(result);
-//   } catch (error) {
-//     res.status(500).send('Error updating achievement: ' + error.message);
-//   }
-// });
-
-// // Delete an Achievement
-// app.delete('/achievement/:id', async (req, res) => {
-//   try {
-//     const result = await achievementCollection.deleteOne({ _id: new ObjectId(req.params.id) });
-
-//     if (result.deletedCount === 0) {
-//       return res.status(404).send('Achievement not found');
-//     }
-//     res.status(200).send('Achievement deleted successfully');
-//   } catch (error) {
-//     console.error('Delete error:', error);
-//     res.status(500).send('Server error');
-//   }
-// });
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Programme not found');
+    }
+    res.status(200).send('Programme deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).send('Server error');
+  }
+});
 
 
 
@@ -423,21 +424,21 @@ app.delete('/achievement/:id', async (req, res) => {
       res.send(result);
     });
 
-    // Programme routes
-    app.get('/programme', async (req, res) => {
-      try {
-        const programme = await programmesCollection.find().toArray();
-        res.json(programme);
-      } catch (err) {
-        res.status(500).send('Error fetching Programme');
-      }
-    });
+    // // Programme routes
+    // app.get('/programme', async (req, res) => {
+    //   try {
+    //     const programme = await programmesCollection.find().toArray();
+    //     res.json(programme);
+    //   } catch (err) {
+    //     res.status(500).send('Error fetching Programme');
+    //   }
+    // });
 
-    app.post("/programme", async (req, res) => {
-      const programme = req.body;
-      const result = await programmesCollection.insertOne(programme);
-      res.send(result);
-    });
+    // app.post("/programme", async (req, res) => {
+    //   const programme = req.body;
+    //   const result = await programmesCollection.insertOne(programme);
+    //   res.send(result);
+    // });
 
     // Home routes
     app.get('/home', async (req, res) => {
