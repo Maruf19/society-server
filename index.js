@@ -84,11 +84,6 @@ async function run() {
 
 
 
-
-
-
-
-
     // Schedule routes
      app.get('/schedule', async (req, res) => {
   try {
@@ -159,6 +154,10 @@ async function run() {
 
 
 
+
+
+
+
  // achievement routes
 app.get('/achievement', async (req, res) => {
   try {
@@ -188,7 +187,6 @@ app.post("/achievement", upload.single('image'), async (req, res) => {
     res.status(500).send('Image upload failed: ' + error.message);
   }
 });
-
 
 // Update a achievement
 app.put("/achievement/:id", upload.single('image'), async (req, res) => {
@@ -231,6 +229,10 @@ app.delete('/achievement/:id', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
+
+
+
 
 
 // Programme routes
@@ -316,6 +318,79 @@ app.delete('/programme/:id', async (req, res) => {
 
 
 
+
+// Team routes
+app.get('/team', async (req, res) => {
+ try {
+   const team = await teamsCollection.find().toArray();
+   res.json(team);
+ } catch (err) {
+   res.status(500).send('Error fetching schedules: ' + err.message)
+ }
+});
+
+
+   // Post a team
+   app.post("/team", upload.single('image'), async (req, res) => {
+     try {
+       const { name, role, description } = req.body;
+
+       if (!req.file) {
+         return res.status(400).send('Image upload failed: No file received.');
+       }
+
+       const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+       const team = { name, role, description, imageUrl };
+       const result = await teamsCollection.insertOne(team);
+       res.send(result);
+     } catch (error) {
+       console.error('Upload error:', error);
+       res.status(500).send('Image upload failed: ' + error.message);
+     }
+   });
+
+
+// Update a Team
+app.put("/team/:id", upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, role, description } = req.body;
+    let updatedTeam = { name, role, description };
+
+    if (req.file) {
+      const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+      updatedTeam.imageUrl = imageUrl;
+    }
+
+    const result = await teamsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedTeam }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send('Team not found');
+    }
+
+    res.send('Team updated successfully');
+  } catch (error) {
+    res.status(500).send('Error updating team: ' + error.message);
+  }
+});
+
+// Delete a Team
+app.delete('/team/:id', async (req, res) => {
+  try {
+    const result = await teamsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Team not found');
+    }
+    res.status(200).send('Team deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).send('Server error');
+  }
+});
 
 
 
@@ -424,7 +499,7 @@ app.delete('/programme/:id', async (req, res) => {
       res.send(result);
     });
 
-    // // Programme routes
+    // // // Programme routes
     // app.get('/programme', async (req, res) => {
     //   try {
     //     const programme = await programmesCollection.find().toArray();
@@ -491,4 +566,4 @@ run().catch(console.dir);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-});
+});  
