@@ -399,6 +399,144 @@ app.delete('/team/:id', async (req, res) => {
 
 
 
+// Leader routes
+// Fetch all leaders
+app.get('/leader', async (req, res) => {
+  try {
+    const leaders = await leadersCollection.find().toArray();
+    res.json(leaders);
+  } catch (err) {
+    res.status(500).send('Error fetching leaders: ' + err.message);
+  }
+});
+
+// Post a new leader
+app.post('/leader', upload.single('image'), async (req, res) => {
+  try {
+    const { name, position } = req.body;
+
+    // Check if all required fields are provided
+    if (!name || !position) {
+      return res.status(400).send('Name and position are required.');
+    }
+
+    // Check if the file was uploaded
+    if (!req.file) {
+      return res.status(400).send('Image upload failed: No file received.');
+    }
+
+    // Construct the image URL
+    const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+    
+    // Create the leader object
+    const leader = { name, position, imageUrl };
+
+    // Ensure you're referencing the correct collection
+    const result = await leadersCollection.insertOne(leader);
+
+    // Return the result of the insertion
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).send('Image upload failed: ' + error.message);
+  }
+});
+
+// Update a leader
+app.put('/leader/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, position } = req.body;
+
+    // Prepare the updated leader object
+    const updatedLeader = { name, position };
+
+    // Update image URL if a new file is uploaded
+    if (req.file) {
+      const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+      updatedLeader.imageUrl = imageUrl;
+    }
+
+    const result = await leadersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedLeader }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send('Leader not found');
+    }
+
+    res.send('Leader updated successfully');
+  } catch (error) {
+    res.status(500).send('Error updating leader: ' + error.message);
+  }
+});
+
+// Delete a leader
+app.delete('/leader/:id', async (req, res) => {
+  try {
+    const result = await leadersCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Leader not found');
+    }
+    res.status(200).send('Leader deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+
+
+// // Leader routes
+// app.get('/leader', async (req, res) => {
+//   try {
+//     const leader = await leadersCollection.find().toArray();
+//     res.json(leader);
+//   } catch (err) {
+//     res.status(500).send('Error fetching Leader');
+//   }
+// });
+
+// app.post("/leader", async (req, res) => {
+//   const leader = req.body;
+//   const result = await leadersCollection.insertOne(leader);
+//   res.send(result);
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // // Team routes
+    // app.get('/team', async (req, res) => {
+    //   try {
+    //     const team = await teamsCollection.find().toArray();
+    //     res.json(team);
+    //   } catch (err) {
+    //     res.status(500).send('Error fetching Team');
+    //   }
+    // });
+
+    // app.post("/team", async (req, res) => {
+    //   const team = req.body;
+    //   const result = await teamsCollection.insertOne(team);
+    //   res.send(result);
+    // });
+
+
+
 
 
 
@@ -467,37 +605,7 @@ app.delete('/team/:id', async (req, res) => {
       res.send(result);
     });
 
-    // Leader routes
-    app.get('/leader', async (req, res) => {
-      try {
-        const leader = await leadersCollection.find().toArray();
-        res.json(leader);
-      } catch (err) {
-        res.status(500).send('Error fetching Leader');
-      }
-    });
-
-    app.post("/leader", async (req, res) => {
-      const leader = req.body;
-      const result = await leadersCollection.insertOne(leader);
-      res.send(result);
-    });
-
-    // Team routes
-    app.get('/team', async (req, res) => {
-      try {
-        const team = await teamsCollection.find().toArray();
-        res.json(team);
-      } catch (err) {
-        res.status(500).send('Error fetching Team');
-      }
-    });
-
-    app.post("/team", async (req, res) => {
-      const team = req.body;
-      const result = await teamsCollection.insertOne(team);
-      res.send(result);
-    });
+    
 
     // // // Programme routes
     // app.get('/programme', async (req, res) => {
