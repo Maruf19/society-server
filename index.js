@@ -44,6 +44,7 @@ async function run() {
     await client.connect();
     const database = client.db("cse-society");
     const contactsCollection = database.collection("contacts");
+    const contactInfoCollection = database.collection("contact-info");
     const schedulesCollection = database.collection("schedule");
     const achievementCollection = database.collection("achievement");
     const youtubeCollection = database.collection("youtube");
@@ -57,13 +58,79 @@ async function run() {
     const missionVisionCollection = database.collection('mission-vision');
     const reviewsCollection = database.collection('review');
 
-    // Contact routes
-    app.post('/contact', async (req, res) => {
-      const contact = req.body;
-      const result = await contactsCollection.insertOne(contact);
-      res.send(result);
-    });
+// Get all contacts
+app.get('/contact', async (req, res) => {
+  try {
+    const contacts = await contactsCollection.find().toArray(); // Use toArray() to return an array
+    res.json(contacts);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching contacts' });
+  }
+});
 
+ // contact post
+ app.post('/contact', async (req, res) => {
+  const contact = req.body;
+  const result = await contactsCollection.insertOne(contact);
+  res.send(result);
+});
+
+// Delete a contact by ID
+    app.delete('/contact/:id', async (req, res) => {
+  try {
+    const result = await contactsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Contact not found');
+    }
+    res.status(200).send('Contact deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).send('Server error');
+  }
+      });
+
+
+
+      // Get all contacts-info
+app.get('/contact-info', async (req, res) => {
+  try {
+    const contactInfo = await contactInfoCollection.find().toArray(); // Use toArray() to return an array
+    res.json(contactInfo);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching contacts-Info' });
+  }
+});
+
+app.post('/contact-info', async (req, res) => {
+  try {
+      const contactInfo = req.body;
+      const result = await contactInfoCollection.insertOne(contactInfo);
+      res.status(201).send(result); // 201 Created
+  } catch (error) {
+      console.error('Error inserting contact info:', error);
+      res.status(500).send('Internal Server Error');
+  }
+});
+
+// Delete a contact-info by ID
+    app.delete('/contact-info/:id', async (req, res) => {
+  try {
+    const result = await contactInfoCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Contact not found');
+    }
+    res.status(200).send('Contact deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).send('Server error');
+  }
+      });
+
+
+      
+ 
     // Review routes
     app.post('/review', async (req, res) => {
       const review = req.body;
@@ -73,13 +140,27 @@ async function run() {
 
     app.get('/review', async (req, res) => {
       try {
-        const reviews = await reviewsCollection.find().toArray();
-        res.status(200).json(reviews);
+        const review = await reviewsCollection.find().toArray();
+        res.status(200).json(review);
       } catch (error) {
         res.status(500).send(error);
       }
     });
 
+   // Delete a Review by ID
+    app.delete('/review/:id', async (req, res) => {
+  try {
+    const result = await reviewsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Review not found');
+    }
+    res.status(200).send('Review deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).send('Server error');
+  }
+      });
 
 
 
