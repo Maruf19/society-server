@@ -653,6 +653,22 @@ app.delete('/leader/:id', async (req, res) => {
       const result = await facebookCollection.insertOne(facebook);
       res.send(result);
     });
+    
+    app.delete('/facebook/:id', async (req, res) => {
+      try {
+        const result = await  facebookCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+    
+        if (result.deletedCount === 0) {
+          return res.status(404).send('Leader not found');
+        }
+        res.status(200).send('Leader deleted successfully');
+      } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).send('Server error');
+      }
+    });
+    
+
 
     // News routes
     app.get('/news', async (req, res) => {
@@ -686,7 +702,20 @@ app.delete('/leader/:id', async (req, res) => {
       res.send(result);
     });
 
-    
+    // Delete Mission-Vision
+app.delete('/about/:id', async (req, res) => {
+  try {
+    const result = await  aboutCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Leader not found');
+    }
+    res.status(200).send('Leader deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).send('Server error');
+  }
+});
 
     // // // Programme routes
     // app.get('/programme', async (req, res) => {
@@ -720,6 +749,9 @@ app.delete('/leader/:id', async (req, res) => {
       res.send(result);
     });
 
+
+
+
     // Mission and Vision routes
     app.get('/mission-vision', async (req, res) => {
       try {
@@ -741,6 +773,22 @@ app.delete('/leader/:id', async (req, res) => {
         res.status(500).send('Error posting mission and vision data');
       }
     });
+
+    // Delete Mission-Vision
+app.delete('/mission-vision/:id', async (req, res) => {
+  try {
+    const result = await missionVisionCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Leader not found');
+    }
+    res.status(200).send('Leader deleted successfully');
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).send('Server error');
+  }
+});
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Successfully connected to MongoDB!");
