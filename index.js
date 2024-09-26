@@ -686,6 +686,37 @@ app.delete('/leader/:id', async (req, res) => {
       res.send(result);
     });
 
+ 
+    const { ObjectId } = require('mongodb');
+
+    // DELETE request handler for deleting a news entry by ID
+    app.delete('/news/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+    
+        // Ensure id is a valid ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send('Invalid ID format');
+        }
+    
+        const result = await newsCollection.deleteOne({ _id: new ObjectId(id) });
+    
+        if (result.deletedCount === 0) {
+          // No document was deleted, indicating the ID does not exist
+          return res.status(404).send('News entry not found');
+        }
+    
+        // Successfully deleted
+        res.status(200).send('News entry deleted successfully');
+      } catch (error) {
+        console.error('Delete error:', error);
+        // Respond with server error in case of an unexpected issue
+        res.status(500).send('Server error');
+      }
+    });
+    
+
+
     // About routes
     app.get('/about', async (req, res) => {
       try {
