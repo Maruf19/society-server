@@ -43,6 +43,7 @@ async function run() {
   try {
     await client.connect();
     const database = client.db("cse-society");
+    const userCollection = database.collection("users");
     const contactsCollection = database.collection("contacts");
     const contactInfoCollection = database.collection("contact-info");
     const schedulesCollection = database.collection("schedule");
@@ -57,6 +58,16 @@ async function run() {
     const homeCollection = database.collection("home");
     const missionVisionCollection = database.collection('mission-vision');
     const reviewsCollection = database.collection('review');
+
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      // Assign 'admin' or 'user' based on your logic
+      user.role = 'user'; // Default role is 'user', you can customize this
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
 
 // Get all contacts
 app.get('/contact', async (req, res) => {
@@ -231,14 +242,6 @@ app.post('/contact-info', async (req, res) => {
       });
 
 
-
-
-
-
-
-
-
-
  // achievement routes
 app.get('/achievement', async (req, res) => {
   try {
@@ -310,10 +313,6 @@ app.delete('/achievement/:id', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
-
-
-
 
 
 // Programme routes
@@ -393,13 +392,6 @@ app.delete('/programme/:id', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
 // Team routes
 app.get('/team', async (req, res) => {
  try {
@@ -409,7 +401,6 @@ app.get('/team', async (req, res) => {
    res.status(500).send('Error fetching schedules: ' + err.message)
  }
 });
-
 
    // Post a team
    app.post("/team", upload.single('image'), async (req, res) => {
@@ -429,7 +420,6 @@ app.get('/team', async (req, res) => {
        res.status(500).send('Image upload failed: ' + error.message);
      }
    });
-
 
 // Update a Team
 app.put("/team/:id", upload.single('image'), async (req, res) => {
@@ -472,12 +462,6 @@ app.delete('/team/:id', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
-
-
-
-
-
 
 
 // Leader routes
@@ -567,60 +551,6 @@ app.delete('/leader/:id', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
-
-
-// // Leader routes
-// app.get('/leader', async (req, res) => {
-//   try {
-//     const leader = await leadersCollection.find().toArray();
-//     res.json(leader);
-//   } catch (err) {
-//     res.status(500).send('Error fetching Leader');
-//   }
-// });
-
-// app.post("/leader", async (req, res) => {
-//   const leader = req.body;
-//   const result = await leadersCollection.insertOne(leader);
-//   res.send(result);
-// });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // // Team routes
-    // app.get('/team', async (req, res) => {
-    //   try {
-    //     const team = await teamsCollection.find().toArray();
-    //     res.json(team);
-    //   } catch (err) {
-    //     res.status(500).send('Error fetching Team');
-    //   }
-    // });
-
-    // app.post("/team", async (req, res) => {
-    //   const team = req.body;
-    //   const result = await teamsCollection.insertOne(team);
-    //   res.send(result);
-    // });
-
-
-
-
-
-
 
     // YouTube routes
     app.get('/youtube', async (req, res) => {
@@ -748,22 +678,6 @@ app.delete('/about/:id', async (req, res) => {
   }
 });
 
-    // // // Programme routes
-    // app.get('/programme', async (req, res) => {
-    //   try {
-    //     const programme = await programmesCollection.find().toArray();
-    //     res.json(programme);
-    //   } catch (err) {
-    //     res.status(500).send('Error fetching Programme');
-    //   }
-    // });
-
-    // app.post("/programme", async (req, res) => {
-    //   const programme = req.body;
-    //   const result = await programmesCollection.insertOne(programme);
-    //   res.send(result);
-    // });
-
     // Home routes
     app.get('/home', async (req, res) => {
       try {
@@ -834,4 +748,6 @@ run().catch(console.dir);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is okay`);
 });  
+
