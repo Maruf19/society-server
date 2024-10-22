@@ -1,9 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb'); // Import ObjectId
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb'); 
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
+const bodyParser = require('body-parser');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -12,6 +14,87 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
+app.use(bodyParser.json());
+
+
+
+const storeId = 'cseso67041bfe39834'; // Replace with your SSLcommerz store ID
+const storePassword = 'cseso67041bfe39834@ssl'; // Replace with your SSLcommerz store password
+const isLive = false; // Set to true for live transactions
+
+// Route to initiate payment
+app.post('/initiate-payment', (req, res) => {
+  const { name, batch, id, mobile, registrationFee } = req.body;
+
+  if (!name || !batch || !id || !mobile || !registrationFee) {
+    return res.status(400).json({ error: 'All fields are required.' });
+  }
+
+  const paymentData = {
+    store_id: storeId,
+    store_passwd: storePassword,
+    total_amount: registrationFee,
+    currency: 'BDT',
+    tran_id: `REF${Math.floor(Math.random() * 1000000)}`,
+    success_url: 'http://localhost:3000/success', // Replace with your actual success URL
+    fail_url: 'http://localhost:3000/fail', // Replace with your actual failure URL
+    cancel_url: 'http://localhost:3000/cancel', // Replace with your actual cancellation URL
+    cus_name: name,
+    cus_email: 'customer@example.com', // Replace or collect actual email
+    cus_add1: 'Customer Address',
+    cus_phone: mobile,
+    product_name: 'Registration Fee',
+    product_category: 'Event',
+    product_profile: 'non-physical-goods',
+  };
+
+  const sslcommerzUrl = isLive
+    ? 'https://securepay.sslcommerz.com/gwprocess/v4/api.php'
+    : 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php';
+
+  const requestData = JSON.stringify(paymentData);
+  const url = new URL(sslcommerzUrl);
+
+  const options = {
+    hostname: url.hostname,
+    path: url.pathname,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': requestData.length,
+    },
+  };
+
+  const paymentReq = https.request(options, (paymentRes) => {
+    let data = '';
+
+    paymentRes.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    paymentRes.on('end', () => {
+      try {
+        const responseJson = JSON.parse(data);
+        res.json(responseJson);
+      } catch (error) {
+        res.status(500).json({ error: 'Failed to parse payment gateway response.' });
+      }
+    });
+  });
+
+  paymentReq.on('error', (error) => {
+    res.status(500).json({ error: 'Payment request failed.', details: error.message });
+  });
+
+  paymentReq.write(requestData);
+  paymentReq.end();
+});
+
+
+
+
+
+
 
 const uri = "mongodb+srv://marufrony48:173-115-012@cluster0.o1dvu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri, {
@@ -58,6 +141,51 @@ async function run() {
     const homeCollection = database.collection("home");
     const missionVisionCollection = database.collection('mission-vision');
     const reviewsCollection = database.collection('review');
+
+
+
+app.post('/initiate-payment', async (req, res) => {
+  console.log('Incoming Payment Data:', req.body); // Log the incoming request body
+  const { name, batch, id, mobile, registrationFee, store_id } = req.body;
+
+  // Ensure store_id is received
+  if (!store_id) {
+    return res.status(400).json({ error: "store_id is required." });
+  }
+
+  const paymentData = {
+    store_id, // Ensure this is set
+    amount: registrationFee,
+    currency: 'BDT',
+    tran_id: `tran_${Date.now()}`, // Generate a unique transaction ID
+    success_url: "http://your-domain.com/success",
+    fail_url: "http://your-domain.com/fail",
+    cancel_url: "http://your-domain.com/cancel",
+    // Additional required parameters...
+  };
+
+  try {
+    const response = await fetch('https://sandbox.sslcommerz.com/gwprocess/v4/api.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(paymentData),
+    });
+
+    const data = await response.json();
+
+    if (data.GatewayPageURL) {
+      res.json({ GatewayPageURL: data.GatewayPageURL });
+    } else {
+      res.status(400).json({ error: 'Payment initiation failed', details: data });
+    }
+  } catch (error) {
+    console.error('Error initiating payment:', error);
+    res.status(500).json({ error: 'An error occurred while initiating payment' });
+  }
+});
+
 
 
     app.post("/users", async (req, res) => {
@@ -734,42 +862,6 @@ app.delete('/mission-vision/:id', async (req, res) => {
   }
 });
 
-//PAYMENT INTREGATION
-
-app.post("/create-payment", async (req, res) => {
-
-const paymentInfo = (req.body);
-console.log (paymentInfo) 
-
-const initiateData = {
-  store_id: "cseso67041bfe39834",
-  store_passwd: "cseso67041bfe39834@ssl",
-  total_amount: paymentInfo.amount,
-  currency: "EUR",
-  tran_id: "REF123",
-  success_url: "http://yoursite.com/success.php",
-  fail_url: "http://yoursite.com/fail.php",
-  cancel_url: "http://yoursite.com/cancel.php",
-  cus_name: "Customer Name",
-  cus_email: "cust@yahoo.com",
-  cus_add1: "Dhaka",
-  cus_add2: "Dhaka",
-  cus_city: "Dhaka",
-  cus_state: "Dhaka",
-  cus_postcode: "1000",
-  cus_country: "Bangladesh",
-  cus_phone: "01711111111",
-  cus_fax: "01711111111",
-  shipping_method: "NO",
-  multi_card_name: "mastercard,visacard,amexcard",
-  value_a: "ref001_A",
-  value_b: "ref002_B",
-  value_c: "ref003_C",
-  value_d: "ref004_D"
-};
-
-  res.send(result);
-});
 
 
     await client.db("admin").command({ ping: 1 });
